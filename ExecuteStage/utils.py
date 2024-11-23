@@ -199,6 +199,13 @@ def detect_optimizable(param, ignoreWaitElement=True, waitElement=""):
         return False
 
 
+def current_datetime():
+    now = datetime.datetime.now()
+    # YYYYMMDDHHMM
+    # formatted_datetime = now.strftime("%Y%m%d%H%M")
+    formatted_datetime = now.strftime("%Y%m%d%H%M%S%f")
+    return formatted_datetime
+
 
 def download_image(browser, url, save_directory, element=None):
     # 定义浏览器头信息
@@ -224,8 +231,9 @@ def download_image(browser, url, save_directory, element=None):
             file_name = url.split('/')[-1].split("?")[0]
 
             # 生成唯一的新文件名
-            new_file_name = file_name + '_' + \
-                str(uuid.uuid4()) + '_' + file_name
+            # new_file_name = file_name + '_' + \
+            #     str(uuid.uuid4()) + '_' + file_name
+            new_file_name = 'timestamp_' + current_datetime()
 
             # 构建保存路径
             save_path = os.path.join(save_directory, new_file_name)
