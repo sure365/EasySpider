@@ -1797,8 +1797,9 @@ class BrowserThread(Thread):
                 except:
                     downloadPic = 0
                 if downloadPic == 1:
-                    download_image(self, content, "Data/Task_" +
+                    imgSuffix = download_image(self, content, "Data/Task_" +
                                    str(self.id) + "/" + self.saveName + "/images", element)
+                    content += imgSuffix
             else:  # 普通节点
                 if p["splitLine"] == 1:
                     text = extract_text_from_html(element.get_attribute('outerHTML'))
@@ -1826,8 +1827,9 @@ class BrowserThread(Thread):
                 except:
                     downloadPic = 0
                 if downloadPic == 1:
-                    download_image(self, content, "Data/Task_" +
+                    imgSuffix = download_image(self, content, "Data/Task_" +
                                    str(self.id) + "/" + self.saveName + "/images", element)
+                    content += imgSuffix
             else:
                 command = 'var arr = [];\
                 var content = arguments[0];\

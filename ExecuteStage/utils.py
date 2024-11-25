@@ -13,7 +13,7 @@ from openpyxl import Workbook, load_workbook
 # import pandas as pd
 # import xlsxwriter
 import requests
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 import pymysql
 from lxml import etree
 import smtplib
@@ -199,12 +199,29 @@ def detect_optimizable(param, ignoreWaitElement=True, waitElement=""):
         return False
 
 
-def current_datetime():
-    now = datetime.datetime.now()
-    # YYYYMMDDHHMM
-    # formatted_datetime = now.strftime("%Y%m%d%H%M")
-    formatted_datetime = now.strftime("%Y%m%d%H%M%S%f")
-    return formatted_datetime
+import hashlib
+
+def generate_image_filename(image_url, image_types=['.jpg', '.jpeg', '.png', '.gif', '.image'], suffix='.png'):
+    url_lower = image_url.lower()
+    image_type = None
+    for img_type in image_types:
+        if img_type in url_lower:
+            image_type = img_type
+            break
+
+    if not image_type:
+        image_type = suffix
+
+    url_md5 = hashlib.md5(image_url.encode('utf-8')).hexdigest()
+
+    length = len(url_md5)
+    third_length = length // 3
+    start_index = third_length
+    end_index = 2 * third_length
+    middle_third = url_md5[start_index:end_index]
+
+    middle_md5 = hashlib.md5(middle_third.encode('utf-8')).hexdigest()
+    return f"{middle_md5}{image_type}"
 
 
 def download_image(browser, url, save_directory, element=None):
@@ -212,11 +229,13 @@ def download_image(browser, url, save_directory, element=None):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
+    file_name = ''
     if url.startswith("data:image"):
         base64_data = url.split(",")[1]
         image_data = base64.b64decode(base64_data)
         # 提取文件名
-        file_name = str(uuid.uuid4()) + '.png'
+        # file_name = str(uuid.uuid4()) + '.png'
+        file_name = generate_image_filename(url)
         # 构建保存路径
         save_path = os.path.join(save_directory, file_name)
         # 保存图片到本地
@@ -224,16 +243,20 @@ def download_image(browser, url, save_directory, element=None):
             file.write(image_data)
         browser.print_and_log("图片已成功下载到:", save_path)
         browser.print_and_log(
-            "The image has been successfully downloaded to:", save_path)
+            "The image111 has been successfully downloaded to:", save_path)
     elif is_valid_url(url):
         try:
+            browser.print_and_log("url:", url)
             # 提取文件名
-            file_name = url.split('/')[-1].split("?")[0]
+            # file_name = url.split('/')[-1].split("?")[0]
 
             # 生成唯一的新文件名
             # new_file_name = file_name + '_' + \
             #     str(uuid.uuid4()) + '_' + file_name
-            new_file_name = 'timestamp_' + current_datetime()
+
+            file_name = generate_image_filename(url)
+            browser.print_and_log("file_name:", file_name)
+            new_file_name = file_name
 
             # 构建保存路径
             save_path = os.path.join(save_directory, new_file_name)
@@ -250,7 +273,7 @@ def download_image(browser, url, save_directory, element=None):
                     file.write(response.content)
                 browser.print_and_log("图片已成功下载到:", save_path)
                 browser.print_and_log(
-                    "The image has been successfully downloaded to:", save_path)
+                    "The image222 has been successfully downloaded to:", save_path)
             else:
                 # browser.print_and_log(f"直接下载图片失败，状态码为:{response.status_code}，尝试使用Selenium下载图片...")
                 # browser.print_and_log(
@@ -263,7 +286,7 @@ def download_image(browser, url, save_directory, element=None):
                         file.write(image_data)
                     browser.print_and_log("图片已成功下载到:", save_path)
                     browser.print_and_log(
-                        "The image has been successfully downloaded to:", save_path)
+                        "The image333 has been successfully downloaded to:", save_path)
                 else:
                     browser.print_and_log("下载图片失败，只能使用元素截图功能下载图片。")
                     browser.print_and_log("Failed to download image, can only download image using element screenshot function.")
@@ -281,6 +304,7 @@ def download_image(browser, url, save_directory, element=None):
         browser.print_and_log("下载图片失败，请检查此图片链接是否有效:", url)
         browser.print_and_log(
             "Failed to download image, please check if this image link is valid:", url)
+    return f"?{file_name}"
 
 
 def get_output_code(output):
